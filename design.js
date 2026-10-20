@@ -404,7 +404,7 @@ export function CostBreakdown({ build }) {
   const t = buildTotals(build, pm, store.settings);
   if (!lines.length) return html`<p class="muted">No costing lines yet.</p>`;
   return html`<div class="table-scroll"><table class="table cost-table ro">
-    <thead><tr><th>Item</th><th>Group</th><th class="num">Qty</th><th>Unit</th><th class="num">Unit cost</th><th class="num">Markup</th><th class="num">Cost</th><th class="num">Sell</th></tr></thead>
+    <thead><tr><th>Item</th><th>Group</th><th class="num">Qty</th><th>Unit</th><th class="num">Rate</th><th class="num">Markup</th><th class="num">Cost</th><th class="num">Sell</th></tr></thead>
     <tbody>${lines.map((l) => { const c = lineCalc(l, pm); return html`<tr>
       <td>${c.description}${c.linked ? html` <span class="tag tag-link" title="Follows the price list"><${Icon} name="link" size=${12} /> Price list</span>` : c.missing ? html` <span class="tag tag-warn">Removed from price list</span>` : ''}</td>
       <td>${l.group}</td><td class="num">${c.qty}</td><td>${c.unit}</td><td class="num">${money(c.unitCost, true)}</td>

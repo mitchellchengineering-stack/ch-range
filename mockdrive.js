@@ -117,7 +117,7 @@ export async function seedDemo(store) {
   const now = new Date().toISOString();
   const add = async (item) => store.addPriceItem({ markup: '', supplier: '', notes: '', ...item });
   const P = {};
-  P.frame = await add({ name: 'Steel frame package (light gauge)', group: 'Framing', unit: 'm²', cost: 95 });
+  P.frame = await add({ name: 'Steel framing 89mm (light gauge)', group: 'Framing', unit: 'lm', cost: 19.5 });
   P.iron = await add({ name: 'Corrugated roofing iron 0.40 BMT', group: 'Roofing', unit: 'm²', cost: 32 });
   P.clad = await add({ name: 'Trimdek wall cladding 0.40 BMT', group: 'Cladding', unit: 'm²', cost: 36 });
   P.flash = await add({ name: 'Flashings set (barge, corner, apron)', group: 'Flashings', unit: 'lm', cost: 18 });
@@ -136,28 +136,28 @@ export async function seedDemo(store) {
       specs: { length: 6, width: 6, studHeight: 2.7, roofStyle: 'Gable', roofPitch: 15, roofing: 'Corrugated', cladding: 'Trimdek', windZone: 'High', consent: 'Required', leadTime: '6–8 weeks' },
       included: ['Light gauge steel frame', 'Corrugated roofing and Trimdek cladding', 'Sectional garage door', 'PA door and one window', 'Flashings and spouting', 'Delivery within Waikato'],
       excluded: ['Concrete slab', 'Electrical', 'Building consent fees'],
-      lines: [L(P.frame, 36), L(P.iron, 42), L(P.clad, 68), L(P.flash, 38), L(P.gdoor, 1, 15), L(P.pa, 1), L(P.win, 1), L(P.labour, 32), L(P.delivery, 1, 0)],
+      lines: [L(P.frame, 215), L(P.iron, 42), L(P.clad, 68), L(P.flash, 38), L(P.gdoor, 1, 15), L(P.pa, 1), L(P.win, 1), L(P.labour, 32), L(P.delivery, 1, 0)],
       renders: [{ garage: true, label: 'Single Garage 6 × 6' }, { garage: true, wall: '#3d4a3f', label: 'Shown in Karaka' }] },
     { category: 'sheds', name: 'Double Garage 6 × 9', status: 'published',
       description: 'Two-car garage with a high stud for storage racking.',
       specs: { length: 9, width: 6, studHeight: 3, roofStyle: 'Gable', roofPitch: 15, roofing: 'Corrugated', cladding: 'Trimdek', windZone: 'High', consent: 'Required', leadTime: '8–10 weeks' },
       included: ['Light gauge steel frame', 'Two sectional garage doors', 'PA door and two windows', 'Flashings and spouting'],
       excluded: ['Concrete slab', 'Electrical'],
-      lines: [L(P.frame, 54), L(P.iron, 62), L(P.clad, 96), L(P.flash, 52), L(P.gdoor, 2, 15), L(P.pa, 1), L(P.win, 2), L(P.labour, 44), L(P.delivery, 1, 0)],
+      lines: [L(P.frame, 318), L(P.iron, 62), L(P.clad, 96), L(P.flash, 52), L(P.gdoor, 2, 15), L(P.pa, 1), L(P.win, 2), L(P.labour, 44), L(P.delivery, 1, 0)],
       renders: [{ garage: true, width: 0.64, wall: '#6e6a62', label: 'Double Garage 6 × 9' }] },
     { category: 'garden-sheds', name: 'Potting Shed 2.4 × 1.8', status: 'published',
       description: 'Compact garden shed with a window for potting and seed raising.',
       specs: { length: 2.4, width: 1.8, studHeight: 2.1, roofStyle: 'Skillion', roofPitch: 5, roofing: 'Corrugated', cladding: 'Corrugated', windZone: 'Medium', consent: 'Not usually required', leadTime: '2–3 weeks' },
       included: ['Steel frame', 'Corrugated cladding and roof', 'Hinged door', 'Window'],
       excluded: ['Base or pad'],
-      lines: [L(P.frame, 4.3), L(P.iron, 18), C('Hinged shed door', 'Doors', 'each', 1, 380), L(P.win, 1), L(P.labour, 6)],
+      lines: [L(P.frame, 46), L(P.iron, 18), C('Hinged shed door', 'Doors', 'each', 1, 380), L(P.win, 1), L(P.labour, 6)],
       renders: [{ width: 0.34, wall: '#4f6b58', label: 'Potting Shed' }] },
     { category: 'granny-flats', name: 'Studio 30', status: 'draft',
       description: 'One-bedroom studio with an open-plan kitchen and living space.',
       specs: { length: 7.5, width: 4, studHeight: 2.4, roofStyle: 'Gable', roofPitch: 20, roofing: 'Corrugated', cladding: 'Weatherboard look steel', bedrooms: 1, bathrooms: 1, windZone: 'High', consent: 'Required', leadTime: '12–14 weeks' },
       included: ['Steel frame and roof structure', 'Exterior cladding and roofing', 'Windows and entry door'],
       excluded: ['Foundations', 'Plumbing and electrical', 'Internal fit-out'],
-      lines: [L(P.frame, 30), L(P.iron, 40), L(P.clad, 70), L(P.flash, 46), L(P.win, 4), L(P.pa, 1), L(P.labour, 80)],
+      lines: [L(P.frame, 265), L(P.iron, 40), L(P.clad, 70), L(P.flash, 46), L(P.win, 4), L(P.pa, 1), L(P.labour, 80)],
       renders: [{ width: 0.6, wall: '#e7e3da', roof: '#3a3f42', deck: true, label: 'Studio 30' }] },
   ];
 

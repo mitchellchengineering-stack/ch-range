@@ -2,6 +2,13 @@
 
 export const UNITS = ['each', 'm²', 'lm', 'm³', 'hr', 'set', 'sheet', 'kg', 'lump sum'];
 
+// The unit each group is usually priced in. Picking a group on a new line or price list item sets this unit.
+export const GROUP_UNITS = {
+  Framing: 'lm', Flashings: 'lm', Roofing: 'm²', Cladding: 'm²', Doors: 'each', Windows: 'each',
+  'Insulation & lining': 'm²', Fixings: 'each', Labour: 'hr', Delivery: 'lump sum', 'Consents & fees': 'lump sum',
+  'Site work': 'lump sum', Other: 'each',
+};
+
 export const GROUPS = [
   'Framing', 'Roofing', 'Cladding', 'Flashings', 'Doors', 'Windows',
   'Insulation & lining', 'Fixings', 'Labour', 'Delivery', 'Consents & fees',

@@ -1,10 +1,10 @@
 import { html, useState, useMemo } from 'htm/preact';
 import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, fmtDateTime, timeAgo } from './ui.js';
-import { GROUPS, UNITS, money, pct, num } from './pricing.js';
+import { GROUPS, UNITS, GROUP_UNITS, money, pct, num } from './pricing.js';
 
 export function PriceItemForm({ item = null, onClose, onSaved }) {
   const { store, toast } = useApp();
-  const [f, setF] = useState(() => ({ name: '', group: 'Other', unit: 'each', cost: '', markup: '', supplier: '', sku: '', notes: '', ...(item || {}) }));
+  const [f, setF] = useState(() => ({ name: '', group: 'Framing', unit: 'lm', cost: '', markup: '', supplier: '', sku: '', notes: '', ...(item || {}) }));
   const [note, setNote] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,10 +26,10 @@ export function PriceItemForm({ item = null, onClose, onSaved }) {
     footer=${html`<button class="btn" onClick=${onClose}>Cancel</button><button class="btn btn-primary" onClick=${save} disabled=${busy}>${busy ? 'Saving…' : 'Save item'}</button>`}>
     ${err && html`<p class="form-error">${err}</p>`}
     <div class="fields">
-      <label class="field span-2"><span>Item name</span><input class="input" value=${f.name} onInput=${(e) => up('name', e.target.value)} placeholder="e.g. Corrugated roofing iron 0.40 BMT" autofocus /></label>
-      <label class="field"><span>Group</span><select class="input" value=${f.group} onChange=${(e) => up('group', e.target.value)}>${[...new Set([...GROUPS, f.group])].map((g) => html`<option value=${g} selected=${g === f.group}>${g}</option>`)}</select></label>
+      <label class="field span-2"><span>Item name</span><input class="input" value=${f.name} onInput=${(e) => up('name', e.target.value)} placeholder="e.g. Steel framing 89mm" autofocus /></label>
+      <label class="field"><span>Group</span><select class="input" value=${f.group} onChange=${(e) => { up('group', e.target.value); if (!item && GROUP_UNITS[e.target.value]) up('unit', GROUP_UNITS[e.target.value]); }}>${[...new Set([...GROUPS, f.group])].map((g) => html`<option value=${g} selected=${g === f.group}>${g}</option>`)}</select></label>
       <label class="field"><span>Unit</span><select class="input" value=${f.unit} onChange=${(e) => up('unit', e.target.value)}>${[...new Set([...UNITS, f.unit])].map((u) => html`<option value=${u} selected=${u === f.unit}>${u}</option>`)}</select></label>
-      <label class="field"><span>Cost per ${f.unit} <small>(excl. GST)</small></span><input class="input" type="number" inputmode="decimal" step="any" value=${f.cost} onInput=${(e) => up('cost', e.target.value)} /></label>
+      <label class="field"><span>${f.unit === 'lump sum' ? 'Cost' : `Rate per ${f.unit === 'lm' ? 'lineal metre' : f.unit}`} <small>(excl. GST)</small></span><input class="input" type="number" inputmode="decimal" step="any" value=${f.cost} onInput=${(e) => up('cost', e.target.value)} /></label>
       <label class="field"><span>Default markup % <small>(optional)</small></span><input class="input" type="number" step="any" value=${f.markup} placeholder=${`${store.settings.defaultMarkup} (app default)`} onInput=${(e) => up('markup', e.target.value)} /></label>
       <label class="field"><span>Supplier</span><input class="input" value=${f.supplier} onInput=${(e) => up('supplier', e.target.value)} /></label>
       <label class="field"><span>Supplier code</span><input class="input" value=${f.sku} onInput=${(e) => up('sku', e.target.value)} /></label>
@@ -142,7 +142,7 @@ export function PricesView({ tab }) {
       : html`<div class="table-scroll"><table class="table price-table">
         <thead><tr>
           ${canEdit && html`<th class="c-check"><input type="checkbox" checked=${allOn} onChange=${() => setSelected(allOn ? [] : shown.map((i) => i.id))} aria-label="Select all" /></th>`}
-          <th>Item</th><th>Group</th><th>Unit</th><th class="num">Cost</th><th class="num">Markup</th><th class="num">Sell</th><th>Last change</th><th class="num">Used in</th>${canEdit && html`<th><span class="sr">Actions</span></th>`}
+          <th>Item</th><th>Group</th><th>Unit</th><th class="num">Rate</th><th class="num">Markup</th><th class="num">Sell</th><th>Last change</th><th class="num">Used in</th>${canEdit && html`<th><span class="sr">Actions</span></th>`}
         </tr></thead>
         <tbody>${shown.map((it) => {
           const m = it.markup === '' || it.markup == null ? num(store.settings.defaultMarkup) : num(it.markup);
@@ -151,7 +151,7 @@ export function PricesView({ tab }) {
             ${canEdit && html`<td class="c-check"><input type="checkbox" checked=${selected.includes(it.id)} onChange=${() => toggle(it.id)} aria-label=${`Select ${it.name}`} /></td>`}
             <td><strong>${it.name}</strong>${(it.supplier || it.sku) && html`<br /><small class="muted">${[it.supplier, it.sku].filter(Boolean).join(', ')}</small>`}</td>
             <td>${it.group}</td><td>${it.unit}</td>
-            <td class="num strong">${money(it.cost, true)}</td>
+            <td class="num strong">${money(it.cost, true)}<small class="muted">${it.unit === 'lump sum' ? '' : ` /${it.unit}`}</small></td>
             <td class="num">${it.markup === '' || it.markup == null ? html`<span class="muted">${pct(m)}</span>` : pct(m)}</td>
             <td class="num">${money(num(it.cost) * (1 + m / 100), true)}</td>
             <td class="nowrap"><small>${timeAgo(it.priceChangedAt || it.updatedAt)}${it.updatedBy ? html`<br /><span class="muted">${it.updatedBy}</span>` : ''}</small></td>

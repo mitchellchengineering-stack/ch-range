@@ -1,11 +1,12 @@
 import { html, useState, useEffect, useLayoutEffect, useMemo, useRef } from 'htm/preact';
 import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, floorArea, fmtNum } from './ui.js';
-import { GROUPS, UNITS, buildTotals, lineCalc, money, moneyGST, pct, uid, num } from './pricing.js';
+import { GROUPS, UNITS, GROUP_UNITS, buildTotals, lineCalc, money, moneyGST, pct, uid, num } from './pricing.js';
 import { SPEC_FIELDS } from './specs.js';
 import { PriceItemForm } from './prices.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const QUICK = [
+  { description: 'Steel framing', group: 'Framing', unit: 'lm' },
   { description: 'Install labour', group: 'Labour', unit: 'hr' },
   { description: 'Delivery', group: 'Delivery', unit: 'lump sum' },
   { description: 'Building consent fees', group: 'Consents & fees', unit: 'lump sum' },
@@ -85,22 +86,22 @@ function CostingEditor({ lines, onChange, defaultMarkup }) {
 
   return html`<div class="costing-editor">
     <div class="table-scroll"><table class="table cost-table" ref=${tableRef}>
-      <thead><tr><th class="c-desc">Item</th><th>Group</th><th class="num">Qty</th><th>Unit</th><th class="num">Unit cost</th><th class="num">Markup %</th><th class="num">Cost</th><th class="num">Sell</th><th class="c-act"><span class="sr">Actions</span></th></tr></thead>
+      <thead><tr><th class="c-desc">Item</th><th>Group</th><th class="num">Qty</th><th>Unit</th><th class="num">Rate</th><th class="num">Markup %</th><th class="num">Cost</th><th class="num">Sell</th><th class="c-act"><span class="sr">Actions</span></th></tr></thead>
       <tbody>
         ${lines.map((l, i) => {
           const c = lineCalc(l, pm);
           return html`<tr key=${l.id}>
             <td class="c-desc">
               <input class="input" value=${l.description} placeholder="Describe the item" onInput=${(e) => set(i, { description: e.target.value })} aria-label="Item description" />
-              ${c.linked && html`<span class="tag tag-link" title="Unit cost follows the price list"><${Icon} name="link" size=${12} /> ${c.item.name === l.description ? 'Price list' : c.item.name}</span>`}
+              ${c.linked && html`<span class="tag tag-link" title="Rate follows the price list"><${Icon} name="link" size=${12} /> ${c.item.name === l.description ? 'Price list' : c.item.name}</span>`}
               ${c.missing && html`<span class="tag tag-warn" title="Using the last known price">Removed from price list, using last price</span>`}
             </td>
-            <td><select class="input" value=${l.group} onChange=${(e) => set(i, { group: e.target.value })} aria-label="Group">${[...new Set([...GROUPS, l.group])].map((g) => html`<option value=${g} selected=${g === l.group}>${g}</option>`)}</select></td>
+            <td><select class="input" value=${l.group} onChange=${(e) => set(i, c.linked ? { group: e.target.value } : { group: e.target.value, unit: GROUP_UNITS[e.target.value] || l.unit })} aria-label="Group">${[...new Set([...GROUPS, l.group])].map((g) => html`<option value=${g} selected=${g === l.group}>${g}</option>`)}</select></td>
             <td class="num"><input class="input num" type="number" inputmode="decimal" step="any" min="0" value=${l.qty} onInput=${(e) => set(i, { qty: e.target.value })} aria-label="Quantity" /></td>
             <td>${c.linked ? html`<span class="ro-val">${c.unit}</span>`
               : html`<select class="input" value=${l.unit} onChange=${(e) => set(i, { unit: e.target.value })} aria-label="Unit">${[...new Set([...UNITS, l.unit])].map((u) => html`<option value=${u} selected=${u === l.unit}>${u}</option>`)}</select>`}</td>
-            <td class="num">${c.linked ? html`<span class="ro-val">${money(c.unitCost, true)}</span>`
-              : html`<input class="input num" type="number" inputmode="decimal" step="any" min="0" value=${l.unitCost} onInput=${(e) => set(i, { unitCost: e.target.value })} aria-label="Unit cost excluding GST" />`}</td>
+            <td class="num">${c.linked ? html`<span class="ro-val">${money(c.unitCost, true)}${c.unit === 'lump sum' ? '' : html`<small> / ${c.unit}</small>`}</span>`
+              : html`<input class="input num" type="number" inputmode="decimal" step="any" min="0" value=${l.unitCost} onInput=${(e) => set(i, { unitCost: e.target.value })} aria-label="Rate excluding GST" title=${`Price per ${l.unit}, excluding GST`} />`}</td>
             <td class="num"><input class="input num" type="number" inputmode="decimal" step="any" value=${l.markup} onInput=${(e) => set(i, { markup: e.target.value })} aria-label="Markup percent" /></td>
             <td class="num calc">${money(c.cost, true)}</td>
             <td class="num calc strong">${money(c.sell, true)}</td>
@@ -261,7 +262,7 @@ export function EditorView({ id, newCat }) {
 
         <section class="form-section" id="sec-costing">
           <h2>Costing</h2>
-          <p class="muted">All amounts exclude GST. New lines start at ${store.settings.defaultMarkup}% markup on cost. Lines marked “Price list” update automatically when the price list changes.</p>
+          <p class="muted">All amounts exclude GST. Qty × rate = cost, so framing is lineal metres × your rate per lineal metre. New lines start at ${store.settings.defaultMarkup}% markup on cost. Lines marked “Price list” update automatically when the price list changes.</p>
           <${CostingEditor} lines=${b.costing?.lines || []} defaultMarkup=${store.settings.defaultMarkup}
             onChange=${(lines) => up({ costing: { ...(b.costing || {}), lines } })} />
           <${TotalsPanel} build=${b} />
