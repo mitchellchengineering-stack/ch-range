@@ -6,7 +6,7 @@ import { firstPageImage } from './pdf.js';
 import { SPECVIEW } from './store.js';
 
 // Printed at the bottom of page 1 of every spec sheet
-const CONTACT = { name: 'Davin', phone: '0226 09 0176', email: 'operation.chengineering@gmail.com', website: 'www.chengineering.co.nz' };
+const CONTACT = { name: 'Davin', phone: '022 609 0176', email: 'operations.chengineering@gmail.com', website: 'www.chengineering.co.nz' };
 
 const isPdf = (f) => /pdf/i.test(f.mimeType) || /\.pdf$/i.test(f.name);
 const isIfc = (f) => /\.ifc$/i.test(f.name);
