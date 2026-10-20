@@ -600,3 +600,10 @@ select.input { padding-right: 28px; }
   display: grid; place-items: end center; touch-action: pan-y; }
 .ifc-guard span { display: inline-flex; align-items: center; gap: 8px; background: rgba(28, 28, 26, .85); color: #fff; font-weight: 600;
   padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
+
+/* ── spec sheet: contact bar at the bottom of page 1 ── */
+.sheet-page1 { display: flex; flex-direction: column; }
+.sheet-contact-bar { margin-top: auto; padding-top: 10px; border-top: 3px solid var(--brand); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; font-size: 10.5pt; color: var(--ink); }
+.sheet-contact-bar strong { font-family: var(--display); font-weight: 700; }
+.sheet-page1 > .sheet-cols { margin-bottom: 14px; }
+@media print { .sheet-page1 { min-height: 262mm; } }

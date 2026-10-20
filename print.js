@@ -5,6 +5,9 @@ import { specRows } from './specs.js';
 import { firstPageImage } from './pdf.js';
 import { SPECVIEW } from './store.js';
 
+// Printed at the bottom of page 1 of every spec sheet
+const CONTACT = { name: 'Davin', phone: '0226 09 0176', email: 'operation.chengineering@gmail.com', website: 'www.chengineering.co.nz' };
+
 const isPdf = (f) => /pdf/i.test(f.mimeType) || /\.pdf$/i.test(f.name);
 const isIfc = (f) => /\.ifc$/i.test(f.name);
 const isImage = (f) => /^image\//i.test(f.mimeType) || /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name);
@@ -106,9 +109,9 @@ export function PrintView({ id }) {
     </div>
 
     <article class="sheet">
+      <div class="sheet-page1">
       <header class="sheet-head">
         <img src="logo.png" alt=${`${s.businessName}, ${s.tagline}`} class="sheet-logo" />
-        <div class="sheet-contact">${contact.map((c) => html`<span>${c}</span>`)}${s.address && html`<span>${s.address}</span>`}</div>
       </header>
 
       <div class="sheet-title">
@@ -136,6 +139,14 @@ export function PrintView({ id }) {
         </section>
       </div>
 
+      <div class="sheet-contact-bar">
+        <strong>Contact ${CONTACT.name}</strong>
+        <span>Ph ${CONTACT.phone}</span>
+        <span>${CONTACT.email}</span>
+        <span>${CONTACT.website}</span>
+      </div>
+      </div>
+
       ${((withModel && hasModel) || (withPlan && plan)) && html`<div class=${`sheet-page2 ${withModel && hasModel ? 'has-model' : ''}`}>
         ${withModel && hasModel && html`<figure class="sheet-model">
           ${modelImg ? html`<img src=${modelImg} alt=${`3D model of ${b.name}`} />` : html`<${Spinner} label="Preparing 3D view" />`}
@@ -147,10 +158,6 @@ export function PrintView({ id }) {
         </section>`}
       </div>`}
 
-      <footer class="sheet-foot">
-        <p>${s.specSheetFooter}</p>
-        <p>Prepared ${fmtDate(new Date())}</p>
-      </footer>
     </article>
   </div>`;
 }
