@@ -34,6 +34,8 @@ export const DEFAULT_SETTINGS = {
 const APPDATA = '_App Data', ARCHIVE = '_Archive';
 const SETTINGS = 'settings.json', PRICES = 'price-list.json', HISTORY = 'price-history.json';
 const DETAILS = 'details.json', THUMB = '_thumbnail.jpg';
+// Screenshot of the 3D model that the spec sheet uses. Lives in the 3D Model folder.
+export const SPECVIEW = '_spec-view.png';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const nowISO = () => new Date().toISOString();
@@ -263,6 +265,15 @@ export class Store {
     return `${prefix}-${String(max + 1).padStart(3, '0')}`;
   }
 
+  // True when another design (including archived ones) already uses this code.
+  async codeTaken(code, exceptFolderId = null) {
+    await this.loadAll();
+    await this.loadArchive();
+    const c = String(code || '').trim().toLowerCase();
+    if (!c) return false;
+    return [...this.builds.values()].some((b) => b.folderId !== exceptFolderId && String(b.data.code || '').trim().toLowerCase() === c);
+  }
+
   folderNameFor(data) { return safeName(`${data.code} ${data.name}`); }
 
   _snapshotPrices(data) {
@@ -281,6 +292,11 @@ export class Store {
     const data = clone(input);
     const now = nowISO(), by = this.user?.name || 'Unknown';
     this._snapshotPrices(data);
+    data.code = String(data.code || '').trim().toUpperCase();
+    const prevCode = folderId ? this.builds.get(folderId)?.data.code : null;
+    if (data.code && data.code !== prevCode && await this.codeTaken(data.code, folderId)) {
+      throw new Error(`The code ${data.code} is already used by another design.`);
+    }
 
     if (!folderId) {
       const cat = this.cat(data.category);
@@ -431,6 +447,22 @@ export class Store {
       entry.thumbId = m.id;
     }
     this.emit();
+  }
+
+  // Keep one screenshot of the 3D model for the spec sheet (replaces the old one).
+  async saveSpecView(entry, blob) {
+    const files = await this.listSection(entry, 'model');
+    const old = files.find((f) => f.name === SPECVIEW);
+    if (old) {
+      await this.drive.replaceContent(old.id, blob);
+      this.invalidate(old.id);
+      this.emit();
+      return old;
+    }
+    const folderId = await this.sectionFolder(entry, 'model');
+    const meta = await this.drive.upload(folderId, new File([blob], SPECVIEW, { type: 'image/png' }), null, SPECVIEW);
+    this.emit();
+    return meta;
   }
 
   async setCover(entry, fileId) {

@@ -80,7 +80,7 @@ function Gallery({ entry, renders }) {
 }
 
 // ── PDF viewer ──────────────────────────────────────────────────
-export function PdfPanel({ fileId, name }) {
+export function PdfPanel({ fileId, name, flow = false }) {
   const { store } = useApp();
   const pagesRef = useRef();
   const [doc, setDoc] = useState(null);
@@ -135,7 +135,7 @@ export function PdfPanel({ fileId, name }) {
   }, [full]);
 
   if (err) return html`<${ErrorBox} error=${err} />`;
-  return html`<div class=${`viewer pdf-viewer ${full ? 'is-full' : ''}`}>
+  return html`<div class=${`viewer pdf-viewer ${flow ? 'flow' : ''} ${full ? 'is-full' : ''}`}>
     <div class="viewer-bar">
       <span class="viewer-title">${name}${doc ? html`<small> ${doc.numPages} ${doc.numPages === 1 ? 'page' : 'pages'}</small>` : ''}</span>
       <div class="viewer-tools">
@@ -156,8 +156,9 @@ export function PdfPanel({ fileId, name }) {
 }
 
 // ── IFC viewer ──────────────────────────────────────────────────
-function IfcPanel({ fileId, name }) {
-  const { store, isClient } = useApp();
+function IfcPanel({ fileId, name, entry = null, scrollGuard = false, onSavedView }) {
+  const { store, isClient, canEdit, run } = useApp();
+  const [active, setActive] = useState(false);
   const host = useRef();
   const viewer = useRef(null);
   const [stage, setStage] = useState('Downloading model');
@@ -205,6 +206,13 @@ function IfcPanel({ fileId, name }) {
   const setSec = (axis, t = section.t) => { setSection({ axis, t }); v()?.setSection(axis, t); };
   const toggleLayer = (l) => { v()?.setLayerVisible(l.label, !l.visible); setLayers(v().layers()); };
   const ready = !stage && !err;
+  // In a scrolling page the model stays locked until tapped, so a swipe scrolls the page instead of spinning the model.
+  const guardOn = scrollGuard && !active && !full;
+  const saveForSheet = () => run(async () => {
+    const blob = await (await fetch(v().screenshot())).blob();
+    await store.saveSpecView(entry, blob);
+    onSavedView?.();
+  }, 'This view will be used on the spec sheet');
 
   return html`<div class=${`viewer ifc-viewer ${full ? 'is-full' : ''}`}>
     <div class="viewer-bar">
@@ -213,6 +221,8 @@ function IfcPanel({ fileId, name }) {
         <button class="btn btn-sm" disabled=${!ready} onClick=${() => v()?.fit()} title="Fit the model in view"><${Icon} name="fit" /> <span class="hide-sm">Fit</span></button>
         <button class=${`btn btn-sm ${section.axis ? 'on' : ''}`} disabled=${!ready} onClick=${() => setSec(section.axis ? null : 'x', 0.5)} title="Cut through the model"><${Icon} name="section" /> <span class="hide-sm">Section</span></button>
         <button class=${`btn btn-sm ${panel === 'layers' ? 'on' : ''}`} disabled=${!ready} onClick=${() => setPanel(panel === 'layers' ? null : 'layers')}><${Icon} name="layers" /> <span class="hide-sm">Parts</span></button>
+        ${scrollGuard && active && !full && html`<button class="btn btn-sm" onClick=${() => setActive(false)}><${Icon} name="lock" /> <span class="hide-sm">Lock to scroll</span></button>`}
+        ${!isClient && canEdit && entry && html`<button class="btn btn-sm" disabled=${!ready} onClick=${saveForSheet} title="Use what you see now as the 3D picture on the spec sheet"><${Icon} name="print" /> <span class="hide-sm">Use on spec sheet</span></button>`}
         ${!isClient && html`<button class="icon-btn" disabled=${!ready} title="Save this view as an image" aria-label="Save view as image"
           onClick=${() => fetch(v().screenshot()).then((r) => r.blob()).then((b) => downloadBlob(b, `${name.replace(/\.ifc$/i, '')}-view.png`))}><${Icon} name="image" /></button>`}
         <button class="icon-btn" onClick=${() => setFull(!full)} aria-label=${full ? 'Exit full screen' : 'Full screen'}><${Icon} name=${full ? 'x' : 'expand'} /></button>
@@ -227,12 +237,13 @@ function IfcPanel({ fileId, name }) {
       <${Watermark} />
       ${stage && !err && html`<div class="viewer-loading"><${Spinner} label=${stage} /></div>`}
       ${err && html`<div class="viewer-loading"><${ErrorBox} error=${err} /></div>`}
-      ${ready && !sel && html`<p class="ifc-hint">Drag to rotate. Pinch or scroll to zoom. Two fingers or right-drag to move. Tap a part to see what it is.</p>`}
+      ${ready && !sel && !guardOn && html`<p class="ifc-hint">Drag to rotate. Pinch or scroll to zoom. Two fingers or right-drag to move. Tap a part to see what it is.</p>`}
       ${panel === 'layers' && html`<div class="ifc-panel">
         <div class="ifc-panel-head"><strong>Parts</strong><button class="icon-btn" onClick=${() => setPanel(null)} aria-label="Close"><${Icon} name="x" size=${16} /></button></div>
         ${layers.map((l) => html`<label class="check"><input type="checkbox" checked=${l.visible} onChange=${() => toggleLayer(l)} /> ${l.label} <small>${l.count}</small></label>`)}
         ${hidden > 0 && html`<button class="btn btn-sm" onClick=${() => { v().showAll(); setHidden(0); }}>Show hidden parts</button>`}
       </div>`}
+      ${guardOn && ready && html`<button class="ifc-guard" onClick=${() => setActive(true)} aria-label="Tap to rotate and zoom the 3D model"><span><${Icon} name="cube" size=${18} /> Tap to rotate and zoom the model</span></button>`}
       ${sel && html`<div class="ifc-info">
         <div class="ifc-info-head"><span class="code">${sel.category}</span><button class="icon-btn" onClick=${() => v().select(null)} aria-label="Clear selection"><${Icon} name="x" size=${16} /></button></div>
         <strong>${sel.name || sel.type}</strong>
@@ -339,7 +350,7 @@ function ModelTab({ entry }) {
   return html`<div>
     ${files.loading && !files.value && html`<${Spinner} />`}
     ${ifcs.length > 1 && html`<div class="chips">${ifcs.map((f) => html`<button class=${`chip ${f.id === current?.id ? 'on' : ''}`} onClick=${() => setPick(f.id)}>${f.name}</button>`)}</div>`}
-    ${current ? html`<${IfcPanel} fileId=${current.id} name=${current.name} key=${current.id} />`
+    ${current ? html`<${IfcPanel} fileId=${current.id} name=${current.name} key=${current.id} entry=${entry} onSavedView=${() => setK(k + 1)} />`
       : !files.loading && html`<div class="empty slim"><${Icon} name="cube" size=${32} /><p>${isClient || !canEdit ? 'No 3D model for this design yet.' : 'Upload the IFC file below to show the 3D model here.'}</p></div>`}
     ${!isClient && html`<${FilesPanel} entry=${entry} sectionKey="model" title="IFC files" accept=".ifc" reloadKey=${k} onChanged=${() => setK(k + 1)}
       filter=${{ test: isIfc, message: 'Only .ifc files can go in the 3D model folder.' }} emptyText="No IFC file uploaded." />`}
@@ -361,6 +372,36 @@ function PlansTab({ entry }) {
       : !files.loading && html`<div class="empty slim"><${Icon} name="file" size=${32} /><p>No plans for this design yet.</p></div>`}
     ${!isClient && html`<${FilesPanel} entry=${entry} sectionKey="plans" title="Plan files" accept=".pdf,image/*" reloadKey=${k} onChanged=${() => setK(k + 1)}
       filter=${{ test: (f) => isPdf(f) || isImage(f), message: 'Plans need to be PDFs or images.' }} emptyText="No plans uploaded." />`}
+  </div>`;
+}
+
+// Client mode: one continuous scroll (details, then the 3D model, then the plans) instead of tabs.
+function ClientFlow({ entry, cat }) {
+  const { store } = useApp();
+  const model = useAsync(() => store.listSection(entry, 'model'), [entry.folderId]);
+  const plans = useAsync(() => store.listSection(entry, 'plans'), [entry.folderId]);
+  const ifcs = (model.value || []).filter(isIfc);
+  const planFiles = (plans.value || []).filter((f) => isPdf(f) || isImage(f));
+  const [pick, setPick] = useState(null);
+  const current = ifcs.find((f) => f.id === pick) || ifcs[0];
+  const planName = (f) => f.name.replace(/\.(pdf|png|jpe?g|webp|gif|svg)$/i, '');
+  return html`<div class="client-flow">
+    <section class="flow-sec"><${OverviewTab} entry=${entry} cat=${cat} /></section>
+    ${model.loading && !model.value && html`<section class="flow-sec"><${Spinner} label="Loading 3D model" /></section>`}
+    ${current && html`<section class="flow-sec">
+      <h2 class="flow-h">3D model</h2>
+      ${ifcs.length > 1 && html`<div class="chips">${ifcs.map((f) => html`<button class=${`chip ${f.id === current.id ? 'on' : ''}`} onClick=${() => setPick(f.id)}>${f.name.replace(/\.ifc$/i, '')}</button>`)}</div>`}
+      <${IfcPanel} fileId=${current.id} name=${current.name} key=${current.id} scrollGuard=${true} />
+    </section>`}
+    ${plans.loading && !plans.value && html`<section class="flow-sec"><${Spinner} label="Loading plans" /></section>`}
+    ${planFiles.length > 0 && html`<section class="flow-sec">
+      <h2 class="flow-h">Plans</h2>
+      ${planFiles.map((f) => html`<div class="flow-plan" key=${f.id}>
+        ${planFiles.length > 1 && html`<h3>${planName(f)}</h3>`}
+        ${isPdf(f) ? html`<${PdfPanel} fileId=${f.id} name=${f.name} flow=${true} />`
+          : html`<div class="viewer"><div class="img-view"><${BlobImg} fileId=${f.id} alt=${f.name} /><${Watermark} /></div></div>`}
+      </div>`)}
+    </section>`}
   </div>`;
 }
 
@@ -533,6 +574,7 @@ export function DesignView({ id, tab }) {
       </div>
     </section>
 
+    ${isClient ? html`<${ClientFlow} entry=${entry} cat=${cat} />` : html`<div>
     <div class="tabs" role="tablist">${tabs.map(([k, l]) => html`<button role="tab" aria-selected=${active === k} class=${active === k ? 'on' : ''} onClick=${() => setActiveTab(k)}>${l}</button>`)}</div>
     <section class="tab-body" role="tabpanel">
       ${active === 'overview' && html`<${OverviewTab} entry=${entry} cat=${cat} />`}
@@ -543,6 +585,7 @@ export function DesignView({ id, tab }) {
         hint="Any file type: PDFs, DWG, CSV, machine files. Only shown to staff, never in client mode." emptyText="No framing files uploaded." />`}
       ${active === 'costing' && html`<${CostingTab} entry=${entry} />`}
     </section>
+    </div>`}
     ${b.notes && !isClient && html`<section class="notes-box"><h3>Internal notes</h3><p>${b.notes}</p></section>`}
   </div>`;
 }

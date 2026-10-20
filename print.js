@@ -3,9 +3,34 @@ import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, fmtDat
 import { buildTotals, money } from './pricing.js';
 import { specRows } from './specs.js';
 import { firstPageImage } from './pdf.js';
+import { SPECVIEW } from './store.js';
 
 const isPdf = (f) => /pdf/i.test(f.mimeType) || /\.pdf$/i.test(f.name);
+const isIfc = (f) => /\.ifc$/i.test(f.name);
 const isImage = (f) => /^image\//i.test(f.mimeType) || /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name);
+
+// Draws the IFC model off-screen and returns a PNG data URL. Used when no saved spec-sheet view exists.
+async function captureModel(blob) {
+  const { IfcViewer } = await import('./ifc-viewer.js');
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;width:1400px;height:800px;pointer-events:none;';
+  document.body.appendChild(host);
+  const v = new IfcViewer(host, { background: 0xffffff });
+  try {
+    v.renderer.setPixelRatio(1);
+    v.renderer.setSize(1400, 800);
+    v.camera.aspect = 1400 / 800;
+    v.camera.updateProjectionMatrix();
+    await v.load(await blob.arrayBuffer());
+    v.fit();
+    v.controls.update();
+    v.renderer.render(v.scene, v.camera);
+    return v.screenshot();
+  } finally {
+    v.dispose();
+    host.remove();
+  }
+}
 
 export function PrintView({ id }) {
   const { store, isClient } = useApp();
@@ -13,13 +38,16 @@ export function PrintView({ id }) {
   const load = useAsync(async () => {
     const entry = await store.getBuild(id);
     if (!entry) return null;
-    const [renders, plans] = await Promise.all([store.listSection(entry, 'renders'), store.listSection(entry, 'plans')]);
-    return { entry, renders, plans };
+    const [renders, plans, model] = await Promise.all([store.listSection(entry, 'renders'), store.listSection(entry, 'plans'), store.listSection(entry, 'model')]);
+    return { entry, renders, plans, model };
   }, [id]);
   const [withPlan, setWithPlan] = useState(true);
   const [withExtra, setWithExtra] = useState(true);
   const [planImg, setPlanImg] = useState(null);
   const [planBusy, setPlanBusy] = useState(false);
+  const [withModel, setWithModel] = useState(true);
+  const [modelImg, setModelImg] = useState(null);
+  const [modelBusy, setModelBusy] = useState(false);
 
   const plan = load.value?.plans?.find((f) => isPdf(f) || isImage(f));
   useEffect(() => {
@@ -35,6 +63,23 @@ export function PrintView({ id }) {
     })();
     return () => { dead = true; };
   }, [plan?.id, withPlan]);
+
+  const modelFiles = load.value?.model || [];
+  const savedView = modelFiles.find((f) => f.name === SPECVIEW);
+  const ifc = modelFiles.find(isIfc);
+  const hasModel = !!(savedView || ifc);
+  useEffect(() => {
+    if (!withModel || modelImg || !hasModel) return undefined;
+    let dead = false;
+    setModelBusy(true);
+    (async () => {
+      try {
+        const url = savedView ? await store.getUrl(savedView.id) : await captureModel(await store.getBlob(ifc.id));
+        if (!dead) setModelImg(url);
+      } catch (e) { console.warn('3D view for spec sheet failed', e); } finally { setModelBusy(false); }
+    })();
+    return () => { dead = true; };
+  }, [savedView?.id, ifc?.id, withModel]);
 
   if (load.loading) return html`<div class="page"><${Spinner} label="Preparing spec sheet" /></div>`;
   if (load.error) return html`<div class="page"><${ErrorBox} error=${load.error} onRetry=${load.reload} /></div>`;
@@ -55,8 +100,9 @@ export function PrintView({ id }) {
     <div class="print-toolbar no-print">
       <a class="btn" href=${back}><${Icon} name="left" /> Back</a>
       <label class="check"><input type="checkbox" checked=${withPlan} disabled=${!plan} onChange=${(e) => setWithPlan(e.target.checked)} /> Floor plan${!plan ? ' (none uploaded)' : ''}</label>
+      <label class="check"><input type="checkbox" checked=${withModel} disabled=${!hasModel} onChange=${(e) => setWithModel(e.target.checked)} /> 3D model view${!hasModel ? ' (none uploaded)' : ''}</label>
       <label class="check"><input type="checkbox" checked=${withExtra} disabled=${!extras.length} onChange=${(e) => setWithExtra(e.target.checked)} /> Extra renders</label>
-      <button class="btn btn-primary" onClick=${() => window.print()} disabled=${planBusy}><${Icon} name="print" /> Print or save as PDF</button>
+      <button class="btn btn-primary" onClick=${() => window.print()} disabled=${planBusy || modelBusy}><${Icon} name="print" /> Print or save as PDF</button>
     </div>
 
     <article class="sheet">
@@ -79,6 +125,12 @@ export function PrintView({ id }) {
 
       ${cover && html`<figure class="sheet-hero"><${BlobImg} fileId=${cover} alt=${b.name} /><img class="watermark wm-md" src="logo.png" alt="" aria-hidden="true" /></figure>`}
       ${withExtra && extras.length > 0 && html`<div class="sheet-extras">${extras.map((f) => html`<figure><${BlobImg} fileId=${f.id} alt="" /><img class="watermark wm-sm" src="logo.png" alt="" aria-hidden="true" /></figure>`)}</div>`}
+
+      ${withModel && hasModel && html`<figure class="sheet-model">
+        ${modelImg ? html`<img src=${modelImg} alt=${`3D model of ${b.name}`} />` : html`<${Spinner} label="Preparing 3D view" />`}
+        <figcaption>3D model</figcaption>
+        ${modelImg && html`<img class="watermark wm-sm" src="logo.png" alt="" aria-hidden="true" />`}
+      </figure>`}
 
       <div class="sheet-cols">
         <section>

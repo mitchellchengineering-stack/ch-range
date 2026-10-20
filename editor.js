@@ -156,12 +156,19 @@ export function EditorView({ id, newCat }) {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [suggested, setSuggested] = useState('');
 
   useEffect(() => {
     if (isNew) { setB(store.blankBuild(store.cat(newCat)?.id || store.settings.categories[0].id)); return; }
     if (load.value) setB(clone(load.value.data));
   }, [load.value, newCat]);
   useEffect(() => { setGuard(dirty ? () => true : null); return () => setGuard(null); }, [dirty]);
+  useEffect(() => {
+    if (!b?.category) return undefined;
+    let live = true;
+    store.nextCode(b.category).then((c) => live && setSuggested(c), () => {});
+    return () => { live = false; };
+  }, [b?.category]);
 
   if (!isNew && load.loading) return html`<div class="page"><${Spinner} label="Loading design" /></div>`;
   if (load.error) return html`<div class="page"><${ErrorBox} error=${load.error} onRetry=${load.reload} /></div>`;
@@ -175,11 +182,16 @@ export function EditorView({ id, newCat }) {
   const save = async (andView = true) => {
     const errs = {};
     if (!b.name.trim()) errs.name = 'Give it a name';
-    setErrors(errs);
-    if (Object.keys(errs).length) { document.getElementById('f-name')?.focus(); return; }
+    const code = String(b.code || '').trim().toUpperCase();
+    const origCode = load.value?.data?.code || '';
     setSaving(true);
     try {
-      let res = await store.saveBuild({ ...b, name: b.name.trim() }, { folderId: isNew ? null : id });
+      if (code && !/^[A-Z0-9][A-Z0-9 ._-]*$/.test(code)) errs.code = 'Use letters, numbers and dashes, like SH-004.';
+      else if (code && (isNew || code !== origCode) && await store.codeTaken(code, isNew ? null : id)) errs.code = `${code} is already used by another design.`;
+      setErrors(errs);
+      if (Object.keys(errs).length) { document.getElementById(errs.name ? 'f-name' : 'f-code')?.focus(); setSaving(false); return; }
+      const payload = { ...b, name: b.name.trim(), code };
+      let res = await store.saveBuild(payload, { folderId: isNew ? null : id });
       if (res?.conflict) {
         const ok = await confirm({
           title: 'Someone else saved this design',
@@ -187,7 +199,7 @@ export function EditorView({ id, newCat }) {
           confirmLabel: 'Save mine anyway', cancelLabel: 'Keep editing', danger: true,
         });
         if (!ok) { setSaving(false); return; }
-        res = await store.saveBuild({ ...b, name: b.name.trim() }, { folderId: id, force: true });
+        res = await store.saveBuild(payload, { folderId: id, force: true });
       }
       setDirty(false); setGuard(null);
       toast(isNew ? `${b.name.trim()} created` : 'Changes saved');
@@ -205,7 +217,7 @@ export function EditorView({ id, newCat }) {
   return html`<div class="page editor">
     <div class="editor-head">
       <a class="back" href=${isNew ? `#/c/${b.category}` : `#/b/${id}`}><${Icon} name="left" /> ${isNew ? cat?.name : b.name || 'Back'}</a>
-      <h1>${isNew ? `New ${(cat?.singular || 'design').toLowerCase()}` : `Edit ${b.code}`}</h1>
+      <h1>${isNew ? `New ${(cat?.singular || 'design').toLowerCase()}` : `Edit ${load.value?.data?.code || b.code}`}</h1>
       ${isNew && html`<p class="muted">Fill in the details and costing, then save. You’ll add plans, the 3D model and renders on the next screen.</p>`}
     </div>
 
@@ -225,7 +237,12 @@ export function EditorView({ id, newCat }) {
             <label class="field"><span>Status</span>
               <select class="input" value=${b.status} onChange=${(e) => up({ status: e.target.value })}>
                 <option value="draft">Draft, staff only</option><option value="published">Published, shown to clients</option></select></label>
-            ${b.code && html`<label class="field"><span>Code</span><input class="input" value=${b.code} disabled /></label>`}
+            <label class="field"><span>Code</span>
+              <input id="f-code" class=${`input ${errors.code ? 'invalid' : ''}`} value=${b.code || ''} maxlength="16"
+                placeholder=${suggested ? `Automatic, ${suggested}` : 'Automatic'} onInput=${(e) => up({ code: e.target.value.toUpperCase() })} />
+              ${errors.code ? html`<small class="form-error">${errors.code}</small>`
+                : html`<small class="muted">${isNew ? 'Leave blank for the next number.' : 'Changing it renames the Drive folder.'}${suggested && suggested !== b.code ? html` <button type="button" class="link-btn" onClick=${() => up({ code: suggested })}>Use ${suggested}</button>` : ''}</small>`}
+            </label>
             <label class="field span-2"><span>Description</span>
               <textarea class="input" rows="3" value=${b.description} placeholder="A sentence or two clients will read" onInput=${(e) => up({ description: e.target.value })}></textarea></label>
           </div>
