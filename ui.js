@@ -136,7 +136,7 @@ export function BlobImg({ fileId, alt = '', class: cls = '', fallback = null, on
 }
 
 export function Watermark({ size = 'md' }) {
-  return html`<img class=${`watermark wm-${size}`} src="assets/logo.png" alt="" aria-hidden="true" draggable="false" />`;
+  return html`<img class=${`watermark wm-${size}`} src="logo.png" alt="" aria-hidden="true" draggable="false" />`;
 }
 
 export function Placeholder({ label = '' }) {

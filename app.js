@@ -1,15 +1,15 @@
 import { html, render, useState, useEffect, useRef, useCallback } from 'htm/preact';
-import config from '../config.js';
+import config from './config.js';
 import { GoogleDrive } from './drive.js';
 import { MockDrive, seedDemo } from './mockdrive.js';
 import { Store } from './store.js';
 import { AppCtx, Icon, Spinner, ConfirmModal, PinPad, Toasts, Modal, useStoreRev } from './ui.js';
-import { RangeView } from './views/range.js';
-import { DesignView } from './views/design.js';
-import { EditorView } from './views/editor.js';
-import { PricesView } from './views/prices.js';
-import { SettingsView, ArchiveView } from './views/settings.js';
-import { PrintView } from './views/print.js';
+import { RangeView } from './range.js';
+import { DesignView } from './design.js';
+import { EditorView } from './editor.js';
+import { PricesView } from './prices.js';
+import { SettingsView, ArchiveView } from './settings.js';
+import { PrintView } from './print.js';
 
 const isDemo = new URLSearchParams(location.search).has('demo');
 document.title = config.APP_TITLE || 'Range';
@@ -28,7 +28,7 @@ const parseFolderId = (s) => {
 // ── screens before the app is ready ─────────────────────────────
 function Splash({ children, wide = false }) {
   return html`<div class="splash"><div class=${`splash-card ${wide ? 'wide' : ''}`}>
-    <img class="splash-logo" src="assets/logo.png" alt="CH Engineering, Steel Framed Homes" />${children}</div></div>`;
+    <img class="splash-logo" src="logo.png" alt="CH Engineering, Steel Framed Homes" />${children}</div></div>`;
 }
 
 function NeedConfig() {
@@ -163,7 +163,7 @@ function Root() {
   </${Modal}>`;
 
   let body;
-  if (phase === 'init' || phase === 'booting') body = html`<div class="boot"><img src="assets/logo.png" alt="" /><${Spinner} label=${phase === 'booting' ? 'Loading the range' : ''} /></div>`;
+  if (phase === 'init' || phase === 'booting') body = html`<div class="boot"><img src="logo.png" alt="" /><${Spinner} label=${phase === 'booting' ? 'Loading the range' : ''} /></div>`;
   else if (phase === 'needConfig') body = html`<${NeedConfig} />`;
   else if (phase === 'signin') body = html`<${SignIn} onSignIn=${() => signIn('')} error=${signErr} busy=${busy} />`;
   else if (phase === 'setup') body = html`<${Setup} drive=${driveRef.current} onReady=${boot} />`;
@@ -274,7 +274,7 @@ function App({ store, drive, onSignOut }) {
   return html`<${AppCtx.Provider} value=${ctx}>
     <div class=${`app ${isClient ? 'is-client' : 'is-edit'} ${isPrint ? 'is-print' : ''}`}>
       ${!isPrint && html`<header class="topbar">
-        <a class="brand" href=${`#/c/${firstCat}`} aria-label="Back to the range"><img src="assets/logo.png" alt=${`${settings.businessName}, ${settings.tagline}`} /></a>
+        <a class="brand" href=${`#/c/${firstCat}`} aria-label="Back to the range"><img src="logo.png" alt=${`${settings.businessName}, ${settings.tagline}`} /></a>
         ${!isClient && html`<nav class="mainnav" aria-label="Main">
           ${navLink(`#/c/${firstCat}`, 'Range', ['c', 'b', 'edit', 'new'].includes(route.name))}
           ${navLink('#/prices', 'Price list', route.name === 'prices')}

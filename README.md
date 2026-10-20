@@ -10,7 +10,7 @@ A catalogue app for the Garden Sheds, Sheds, Granny Flats and Homes range. It ru
 
 ### 1. Put the app on GitHub Pages
 1. Create a new repository, e.g. `ch-range`.
-2. Upload everything in this folder (keep the folder structure, including the hidden `.nojekyll` file).
+2. Upload all the files. There are no sub-folders, so you can select everything and drag it in, or use *Add file → Upload files*.
 3. **Settings → Pages →** Source: *Deploy from a branch*, Branch: `main`, folder `/ (root)`. Save.
 4. Note the address it gives you, e.g. `https://yourname.github.io/ch-range/`.
 
@@ -98,21 +98,23 @@ Hides all costs, markups, drafts, framing files, internal notes and editing. Lea
 - **Big IFC files** upload fine (no app limit), but very large models take longer to open on tablets.
 - **Two people editing the same design:** the second person to save gets a warning and can choose to keep editing or overwrite.
 - **Add to home screen** on an iPad or phone for a full-screen app feel.
-- **Logo:** lives in `assets/`. Replace `logo.png` (full logo) and `logo-mark.png` (roof only, used as the faint background watermark) with the same file names to update it.
+- **Logo:** replace `logo.png` (full logo) and `logo-mark.png` (roof only, used as the faint background watermark) with the same file names to update it.
 
 ## Files in this repo
 | File | What it is |
 |---|---|
 | `index.html` | The page |
 | `config.js` | Your Google client ID and folder ID |
-| `css/app.css` | Look and feel |
-| `js/app.js` | Sign-in, setup, navigation, client mode |
-| `js/store.js` | Reads and writes the Drive folder structure |
-| `js/drive.js` | Google Drive connection |
-| `js/pricing.js` | Markup, totals, rounding |
-| `js/ifc-viewer.js` | 3D model viewer |
-| `js/pdf.js` | Plan viewer |
-| `js/views/*` | The pages: range, design, editor, price list, settings, spec sheet |
-| `js/mockdrive.js` | Demo mode |
+| `app.css` | Look and feel |
+| `app.js` | Sign-in, setup, navigation, client mode |
+| `store.js` | Reads and writes the Drive folder structure |
+| `drive.js` | Google Drive connection |
+| `pricing.js` | Markup, totals, rounding |
+| `ifc-viewer.js` | 3D model viewer |
+| `pdf.js` | Plan viewer |
+| `range.js`, `design.js`, `editor.js`, `prices.js`, `settings.js`, `print.js` | The pages |
+| `ui.js`, `specs.js` | Shared building blocks |
+| `mockdrive.js` | Demo mode |
+| `logo.png`, `logo-mark.png`, `favicon.png`, `icon-180.png` | Logo and icons |
 
 Libraries load from public CDNs at pinned versions: Preact + htm (UI), three.js 0.170 and web-ifc 0.0.77 (3D), pdf.js 3.11 (plans).

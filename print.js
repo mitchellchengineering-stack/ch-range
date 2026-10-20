@@ -1,8 +1,8 @@
 import { html, useState, useEffect } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, fmtDate } from '../ui.js';
-import { buildTotals, money } from '../pricing.js';
-import { specRows } from '../specs.js';
-import { firstPageImage } from '../pdf.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, fmtDate } from './ui.js';
+import { buildTotals, money } from './pricing.js';
+import { specRows } from './specs.js';
+import { firstPageImage } from './pdf.js';
 
 const isPdf = (f) => /pdf/i.test(f.mimeType) || /\.pdf$/i.test(f.name);
 const isImage = (f) => /^image\//i.test(f.mimeType) || /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name);
@@ -60,9 +60,9 @@ export function PrintView({ id }) {
     </div>
 
     <article class="sheet">
-      <img class="sheet-wm" src="assets/logo-mark.png" alt="" aria-hidden="true" />
+      <img class="sheet-wm" src="logo-mark.png" alt="" aria-hidden="true" />
       <header class="sheet-head">
-        <img src="assets/logo.png" alt=${`${s.businessName}, ${s.tagline}`} class="sheet-logo" />
+        <img src="logo.png" alt=${`${s.businessName}, ${s.tagline}`} class="sheet-logo" />
         <div class="sheet-contact">${contact.map((c) => html`<span>${c}</span>`)}${s.address && html`<span>${s.address}</span>`}</div>
       </header>
 
@@ -77,8 +77,8 @@ export function PrintView({ id }) {
         </div>
       </div>
 
-      ${cover && html`<figure class="sheet-hero"><${BlobImg} fileId=${cover} alt=${b.name} /><img class="watermark wm-md" src="assets/logo.png" alt="" aria-hidden="true" /></figure>`}
-      ${withExtra && extras.length > 0 && html`<div class="sheet-extras">${extras.map((f) => html`<figure><${BlobImg} fileId=${f.id} alt="" /><img class="watermark wm-sm" src="assets/logo.png" alt="" aria-hidden="true" /></figure>`)}</div>`}
+      ${cover && html`<figure class="sheet-hero"><${BlobImg} fileId=${cover} alt=${b.name} /><img class="watermark wm-md" src="logo.png" alt="" aria-hidden="true" /></figure>`}
+      ${withExtra && extras.length > 0 && html`<div class="sheet-extras">${extras.map((f) => html`<figure><${BlobImg} fileId=${f.id} alt="" /><img class="watermark wm-sm" src="logo.png" alt="" aria-hidden="true" /></figure>`)}</div>`}
 
       <div class="sheet-cols">
         <section>

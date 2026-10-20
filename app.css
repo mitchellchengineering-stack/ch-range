@@ -57,7 +57,7 @@ code { font-size: .92em; background: var(--line-2); padding: .1em .35em; border-
 .app::after {
   content: ''; position: fixed; z-index: -1; pointer-events: none;
   right: -6vw; bottom: 3vh; width: min(70vw, 900px); aspect-ratio: 814 / 97;
-  background: url('../assets/logo-mark.png') no-repeat center / contain; opacity: .05;
+  background: url('logo-mark.png') no-repeat center / contain; opacity: .05;
 }
 .main { max-width: var(--wrap); margin: 0 auto; padding: 0 clamp(14px, 3vw, 32px) 48px; }
 .page { padding-top: 22px; }

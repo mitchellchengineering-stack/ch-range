@@ -1,6 +1,6 @@
 import { html, useState, useEffect, useMemo } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, Placeholder, sizeLabel, floorArea, fmtNum } from '../ui.js';
-import { buildTotals, money, reviewDue, changedSinceReview } from '../pricing.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, Placeholder, sizeLabel, floorArea, fmtNum } from './ui.js';
+import { buildTotals, money, reviewDue, changedSinceReview } from './pricing.js';
 
 export const SORTS = [
   ['name', 'Name'], ['price-asc', 'Price, low to high'], ['price-desc', 'Price, high to low'],

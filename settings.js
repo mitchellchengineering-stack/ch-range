@@ -1,6 +1,6 @@
 import { html, useState, useEffect } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, fmtDate } from '../ui.js';
-import { money, num } from '../pricing.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, fmtDate } from './ui.js';
+import { money, num } from './pricing.js';
 import { DesignCard } from './range.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));

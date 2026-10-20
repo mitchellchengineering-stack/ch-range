@@ -1,7 +1,7 @@
 import { html, useState, useEffect, useLayoutEffect, useMemo, useRef } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, floorArea, fmtNum } from '../ui.js';
-import { GROUPS, UNITS, buildTotals, lineCalc, money, moneyGST, pct, uid, num } from '../pricing.js';
-import { SPEC_FIELDS } from '../specs.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, floorArea, fmtNum } from './ui.js';
+import { GROUPS, UNITS, buildTotals, lineCalc, money, moneyGST, pct, uid, num } from './pricing.js';
+import { SPEC_FIELDS } from './specs.js';
 import { PriceItemForm } from './prices.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));

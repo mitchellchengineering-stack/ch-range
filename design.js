@@ -2,11 +2,11 @@ import { html, useState, useEffect, useRef, useCallback } from 'htm/preact';
 import {
   useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, Placeholder, Watermark, Modal, FileDrop, UploadList,
   fmtDate, fmtDateTime, timeAgo, fileSize, downloadBlob, sizeLabel,
-} from '../ui.js';
-import { buildTotals, lineCalc, money, moneyGST, pct, changedSinceReview, reviewDue } from '../pricing.js';
-import { specRows } from '../specs.js';
-import { SECTIONS } from '../store.js';
-import { openPdf, renderPage } from '../pdf.js';
+} from './ui.js';
+import { buildTotals, lineCalc, money, moneyGST, pct, changedSinceReview, reviewDue } from './pricing.js';
+import { specRows } from './specs.js';
+import { SECTIONS } from './store.js';
+import { openPdf, renderPage } from './pdf.js';
 import { visibleIn, sortBuilds } from './range.js';
 
 const isPdf = (f) => /pdf/i.test(f.mimeType) || /\.pdf$/i.test(f.name);
@@ -177,7 +177,7 @@ function IfcPanel({ fileId, name }) {
         const blob = await store.getBlob(fileId);
         if (dead) return;
         setStage('Starting 3D engine');
-        const { IfcViewer } = await import('../ifc-viewer.js');
+        const { IfcViewer } = await import('./ifc-viewer.js');
         if (dead) return;
         const v = new IfcViewer(host.current, { onSelect: (x) => !dead && setSel(x) });
         viewer.current = v;

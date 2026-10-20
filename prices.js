@@ -1,6 +1,6 @@
 import { html, useState, useMemo } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, fmtDateTime, timeAgo } from '../ui.js';
-import { GROUPS, UNITS, money, pct, num } from '../pricing.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, Modal, fmtDateTime, timeAgo } from './ui.js';
+import { GROUPS, UNITS, money, pct, num } from './pricing.js';
 
 export function PriceItemForm({ item = null, onClose, onSaved }) {
   const { store, toast } = useApp();
