@@ -106,7 +106,6 @@ export function PrintView({ id }) {
     </div>
 
     <article class="sheet">
-      <img class="sheet-wm" src="logo-mark.png" alt="" aria-hidden="true" />
       <header class="sheet-head">
         <img src="logo.png" alt=${`${s.businessName}, ${s.tagline}`} class="sheet-logo" />
         <div class="sheet-contact">${contact.map((c) => html`<span>${c}</span>`)}${s.address && html`<span>${s.address}</span>`}</div>
@@ -123,14 +122,8 @@ export function PrintView({ id }) {
         </div>
       </div>
 
-      ${cover && html`<figure class="sheet-hero"><${BlobImg} fileId=${cover} alt=${b.name} /><img class="watermark wm-md" src="logo.png" alt="" aria-hidden="true" /></figure>`}
-      ${withExtra && extras.length > 0 && html`<div class="sheet-extras">${extras.map((f) => html`<figure><${BlobImg} fileId=${f.id} alt="" /><img class="watermark wm-sm" src="logo.png" alt="" aria-hidden="true" /></figure>`)}</div>`}
-
-      ${withModel && hasModel && html`<figure class="sheet-model">
-        ${modelImg ? html`<img src=${modelImg} alt=${`3D model of ${b.name}`} />` : html`<${Spinner} label="Preparing 3D view" />`}
-        <figcaption>3D model</figcaption>
-        ${modelImg && html`<img class="watermark wm-sm" src="logo.png" alt="" aria-hidden="true" />`}
-      </figure>`}
+      ${cover && html`<figure class="sheet-hero"><${BlobImg} fileId=${cover} alt=${b.name} /></figure>`}
+      ${withExtra && extras.length > 0 && html`<div class="sheet-extras">${extras.map((f) => html`<figure><${BlobImg} fileId=${f.id} alt="" /></figure>`)}</div>`}
 
       <div class="sheet-cols">
         <section>
@@ -143,10 +136,16 @@ export function PrintView({ id }) {
         </section>
       </div>
 
-      ${withPlan && plan && html`<section class="sheet-plan">
-        <h2>Floor plan</h2>
-        ${planImg ? html`<img src=${planImg} alt="Floor plan" />` : html`<${Spinner} label="Preparing plan" />`}
-      </section>`}
+      ${((withModel && hasModel) || (withPlan && plan)) && html`<div class=${`sheet-page2 ${withModel && hasModel ? 'has-model' : ''}`}>
+        ${withModel && hasModel && html`<figure class="sheet-model">
+          ${modelImg ? html`<img src=${modelImg} alt=${`3D model of ${b.name}`} />` : html`<${Spinner} label="Preparing 3D view" />`}
+          <figcaption>3D model</figcaption>
+        </figure>`}
+        ${withPlan && plan && html`<section class="sheet-plan">
+          <h2>Floor plan</h2>
+          ${planImg ? html`<img src=${planImg} alt="Floor plan" />` : html`<${Spinner} label="Preparing plan" />`}
+        </section>`}
+      </div>`}
 
       <footer class="sheet-foot">
         <p>${s.specSheetFooter}</p>
