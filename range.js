@@ -1,5 +1,5 @@
 import { html, useState, useEffect, useMemo } from 'htm/preact';
-import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, Placeholder, sizeLabel, floorArea, fmtNum } from './ui.js';
+import { useApp, useStoreRev, useAsync, Icon, Spinner, ErrorBox, BlobImg, Placeholder, Watermark, sizeLabel, floorArea, fmtNum } from './ui.js';
 import { buildTotals, money, reviewDue, changedSinceReview } from './pricing.js';
 
 export const SORTS = [
@@ -30,6 +30,7 @@ export function visibleIn(store, catId, isClient) {
 export function RoofCardImage({ fileId, label }) {
   return html`<div class="card-img">
     <${BlobImg} fileId=${fileId} alt=${label} fallback=${html`<${Placeholder} />`} />
+    ${fileId && html`<${Watermark} size="sm" />`}
     <svg class="card-roof" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
       <polygon points="0,0 50,0 0,10" class="roof-mask" /><polygon points="50,0 100,0 100,10" class="roof-mask" />
       <polyline points="0,10 50,0 100,10" vector-effect="non-scaling-stroke" class="roof-line" />
