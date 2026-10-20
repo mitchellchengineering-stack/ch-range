@@ -11,7 +11,7 @@ export default {
   // Open the folder in Drive and copy the last part of the URL:
   // https://drive.google.com/drive/folders/THIS_PART_HERE
   // Leave blank the first time and the app will offer to create the folder for you.
-  CATALOG_FOLDER_ID: '',
+  CATALOG_FOLDER_ID: '1vFf1YVkWyBM80p28RyjZFUMxjp24mVTI',
 
   // Shown in the browser tab
   APP_TITLE: 'CH Engineering Range',
